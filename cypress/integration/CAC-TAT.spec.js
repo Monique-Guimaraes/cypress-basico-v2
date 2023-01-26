@@ -17,7 +17,7 @@ describe('Central de Atendimento ao Cliente TAT', function() {
         cy.get('#lastName').type('Guimarães')
         cy.get('#email').type('monique.pguimaraes@gmail.com')
         cy.get('#open-text-area').type(longText, { delay: 0 }) //em const, criei uma constante chamada long text e escrevi um longo texto nela, em type eu chamei essa constante; o delay zero é para escrever rapido e o teste ser mais rapido
-        cy.get('button[type="submit"]').click() //pega uma classe do tipo botao com a propriedade de submit
+        cy.contains('button', 'Enviar').click() // ver no doc sobre contain //cy.get('button[type="submit"]').click() = pega uma classe do tipo botao com a propriedade de submit
             //ate aqui são apenas ações, com a linha abaixo que é uma verificação, temos o resultado esperado
         cy.get('.success').should('be.visible') //uma mensagem de sucesso com a classe chamada success deve ser visivil
             // aqui ele encontra o elemento success que tem como dever ser visivel, validando o teste
@@ -29,7 +29,7 @@ describe('Central de Atendimento ao Cliente TAT', function() {
         cy.get('#lastName').type('Guimarães')
         cy.get('#email').type('monique.pguimaraes,gmail.com')
         cy.get('#open-text-area').type('teste')
-        cy.get('button[type="submit"]').click()
+        cy.contains('button', 'Enviar').click() //cy.get('button[type="submit"]').click()
 
         cy.get('.error').should('be.visible') // no caso para validar um erro.. o campo email está invalido para esse teste
 
@@ -43,13 +43,13 @@ describe('Central de Atendimento ao Cliente TAT', function() {
 
     })
 
-    it.only('exibe mensagem de erro quando o telefone se torna obrigatório mas não é preenchido antes do envio do formulário', function() {
+    it('exibe mensagem de erro quando o telefone se torna obrigatório mas não é preenchido antes do envio do formulário', function() {
         cy.get('#firstName').type('Monique')
         cy.get('#lastName').type('Guimarães')
         cy.get('#email').type('monique.pguimaraes@gmail.com')
         cy.get('#phone-checkbox').click() //o checkbox do telefone será ticado, o que torna o campo o campo telefone obrigatório (mas nao sera preenchido)
         cy.get('#open-text-area').type('teste')
-        cy.get('button[type="submit"]').click()
+        cy.contains('button', 'Enviar').click() //cy.get('button[type="submit"]').click()
 
         cy.get('.error').should('be.visible')
 
@@ -81,5 +81,17 @@ describe('Central de Atendimento ao Cliente TAT', function() {
             .should('have.value', '')
 
     })
+
+    it('envia o formuário com sucesso usando um comando customizado', function() {
+        cy.fillMandatoryFieldsAndSubmit() //comando customizado criado em cypress/support/commands.js
+
+        cy.get('.success').should('be.visible')
+    })
+
+    it('exibe mensagem de erro ao submeter o formulário sem preencher os campos obrigatórios',
+        function() {
+            cy.contains('button', 'Enviar').click()
+            cy.get('.error').should('be.visible')
+        })
 
 })
