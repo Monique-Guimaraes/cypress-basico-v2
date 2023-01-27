@@ -1,4 +1,4 @@
-Cypress.Commands.add('fillMandatoryFieldsAndSubmit', function() {
+Cypress.Commands.add('fillMandatoryFieldsAndSubmit', function() { //trandução: preenche os campos obrigatórios e submete
         cy.get('#firstName').type('Monique')
         cy.get('#lastName').type('Guimarães')
         cy.get('#email').type('monique.pguimaraes@gmail.com')

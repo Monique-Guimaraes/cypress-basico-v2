@@ -82,16 +82,36 @@ describe('Central de Atendimento ao Cliente TAT', function() {
 
     })
 
+    it('exibe mensagem de erro ao submeter o formulário sem preencher os campos obrigatórios',
+        function() {
+            cy.contains('button', 'Enviar').click()
+            cy.get('.error').should('be.visible')
+        })
+
+
     it('envia o formuário com sucesso usando um comando customizado', function() {
         cy.fillMandatoryFieldsAndSubmit() //comando customizado criado em cypress/support/commands.js
 
         cy.get('.success').should('be.visible')
     })
 
-    it('exibe mensagem de erro ao submeter o formulário sem preencher os campos obrigatórios',
-        function() {
-            cy.contains('button', 'Enviar').click()
-            cy.get('.error').should('be.visible')
-        })
+
+    it('seleciona um produto (YouTube) por seu texto', function() { //observação, tem um por linha pois foi feito de forma encadeada
+        cy.get('#product') //indico o seletor usando o cyget (seletor product(product é o ID)) 
+            .select('YouTube') // uso o select indicando por texto que quero a opção youtbe
+            .should('have.value', 'youtube') // aqui estou colocando a verificação do que deve ser (aqui está com minuscula pois estamos verif o valor e nao texto)
+    })
+
+    it('seleciona um produto (Mentoria) por seu valor (value)', function() {
+        cy.get('#product')
+            .select('mentoria')
+            .should('have.value', 'mentoria')
+    })
+
+    it.only('seleciona um produto (Blog) por seu índice', function() {
+        cy.get('#product')
+            .select(1)
+            .should('have.value', 'blog')
+    })
 
 })
