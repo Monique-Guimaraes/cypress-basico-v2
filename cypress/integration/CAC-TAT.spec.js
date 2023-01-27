@@ -108,10 +108,24 @@ describe('Central de Atendimento ao Cliente TAT', function() {
             .should('have.value', 'mentoria')
     })
 
-    it.only('seleciona um produto (Blog) por seu índice', function() {
+    it('seleciona um produto (Blog) por seu índice', function() {
         cy.get('#product')
             .select(1)
             .should('have.value', 'blog')
     })
 
+    it('marca o tipo de atendimento "Feedback', function() {
+        cy.get('input[type="radio"][value="feedback"]') // vou pegar um imput que vi usando o inspecionar, esse input é do tipo radio e tem valor feedback 
+            .check() //e dou check para validar
+            .should('have.value', 'feedback') // por fim, indicou que estou validando meu teste
+    })
+
+    it.only('marca cada tipo de atendimento', function() {
+        cy.get('input[type="radio"]') // aqui ele pega todas as opções de input do tipo radio
+            .should('have.length', 3) //length é o comprimento, e temos 3 opções de radio
+            .each(function($radio) { //o each recebe uma função de callback, que recebe como argumento cada um dos elementos que foi selecionado
+                cy.wrap($radio).check() // uso o wrap para empacotar cada um desses radios
+                cy.wrap($radio).should('be.checked') //do mesmo radio, para verificar que deve ter sido marcado, os 3.
+            })
+    })
 })
