@@ -189,4 +189,5 @@ describe('Central de Atendimento ao Cliente TAT', function() {
         cy.contains('Talking About Testing').should('be.visible') //fazendo a validação que a pagina foi aberta na mesma aba, só que validando atraves do texto    
     })
 
+
 })
