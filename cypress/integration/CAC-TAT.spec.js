@@ -120,12 +120,73 @@ describe('Central de Atendimento ao Cliente TAT', function() {
             .should('have.value', 'feedback') // por fim, indicou que estou validando meu teste
     })
 
-    it.only('marca cada tipo de atendimento', function() {
+    it('marca cada tipo de atendimento', function() {
         cy.get('input[type="radio"]') // aqui ele pega todas as opções de input do tipo radio
             .should('have.length', 3) //length é o comprimento, e temos 3 opções de radio
-            .each(function($radio) { //o each recebe uma função de callback, que recebe como argumento cada um dos elementos que foi selecionado
+            .each(function($radio) { //o each recebe uma função de callback como argumento, que recebe como argumento cada um dos elementos que foi selecionado
                 cy.wrap($radio).check() // uso o wrap para empacotar cada um desses radios
                 cy.wrap($radio).should('be.checked') //do mesmo radio, para verificar que deve ter sido marcado, os 3.
             })
     })
+
+    it('marca ambos checkboxes, depois desmarca o último', function() {
+        cy.get('input[type="checkbox"]') //pega todos os inputs do tipo checkbox, que sao dois
+            .check() //faço a marcação
+            .should('be.checked') //validei que ambos estão marcados
+            .last() //escolho o ultimo, dos imputs de checkbox
+            .uncheck() // dou nao check
+            .should('not.be.checked') // e faço a validação
+    })
+
+    it('Revise mensagem de erro quando o telefone se torna obrigatório mas não é preenchido antes do envio do formulário', function() {
+        cy.get('#firstName').type('Monique')
+        cy.get('#lastName').type('Guimarães')
+        cy.get('#email').type('monique.pguimaraes@gmail.com')
+        cy.get('#phone-checkbox').check() //alteramos o .click para o .check por uma questão de semantica
+        cy.get('#open-text-area').type('teste')
+        cy.contains('button', 'Enviar').click() //cy.get('button[type="submit"]').click()
+
+        cy.get('.error').should('be.visible')
+    })
+
+    it('seleciona um arquivo da pasta fixtures', function() {
+        cy.get('input[type="file"]') // poderia usar o ID que é cy.get('#file-upload')
+            .should('not.have.value') // confirmo que ainda nao tem nada selecionado
+            .selectFile('./cypress/fixtures/example.json') //add um arquivo nele
+            .should(function($input) { //passei uma função que tem como argumento o input do file (que é o elemento)
+                expect($input[0].files[0].name).to.equal('example.json') //passo o caminho do arquivo com o nome para verificar
+            })
+
+    })
+
+    it('seleciona um arquivo simulando um drag-and-drop', function() { //drag-and-drop é arrastar e soltar
+        cy.get('input[type="file"]')
+            .should('not.have.value')
+            .selectFile('./cypress/fixtures/example.json', { action: 'drag-drop' }) //simula que está arrastando e soltando para anexar actior é a ação 
+            .should(function($input) {
+                expect($input[0].files[0].name).to.equal('example.json') //passo o caminho do arquivo com o nome para verificar
+            })
+    })
+
+    it('seleciona um arquivo utilizando uma fixture para a qual foi dada um alias', function() {
+        cy.fixture('example.json').as('sampleFile') //cy.fixture para pegar a fixture example, as é como 
+        cy.get('input[type="file"]')
+            .selectFile('@sampleFile') //ao inves de passar todo o caminho anterior, passa o alias
+            .should(function($input) { //copio a verificação anterior
+                expect($input[0].files[0].name).to.equal('example.json') //passo o caminho do arquivo com o nome para verificar
+            })
+    })
+
+    it('verifica que a política de privacidade abre em outra aba sem a necessidade de um clique', function() {
+        cy.get('#privacy a').should('have.attr', 'target', '_blank') //o elemento chama privacy mas o link é um a. Faz uma verificação de que tem um atributo (attr), o atributo que iremos verificar pe o target, e  valor do target é _blank
+            //esse teste valida que quando clicado em polita de provacidade, o link será aberto em uma nova aba
+    })
+
+    it('acessa a página da política de privacidade removendo o target e então clicando no link', function() {
+        cy.get('#privacy a')
+            .invoke('removeAttr', 'target') //removi o target
+            .click()
+        cy.contains('Talking About Testing').should('be.visible') //fazendo a validação que a pagina foi aberta na mesma aba, só que validando atraves do texto    
+    })
+
 })
