@@ -2,6 +2,8 @@
 
 
 describe('Central de Atendimento ao Cliente TAT', function() {
+    const THREE_SECONDS_IN_MS = 3000 //criada uma variavel de 3 segundos para usar no cy.tick(passando ela aqui)
+
     beforeEach(function() { // beforeeach é antes de cada.. antes de cada teste faça a visita no site
         cy.visit('./src/index.html') // visitar o site 
     })
@@ -13,6 +15,7 @@ describe('Central de Atendimento ao Cliente TAT', function() {
 
     it('preenche os campos obrigatórios e envia o formulário', function() {
         const longText = 'texto grande texto grande texto grande texto grande texto grande texto grande texto grande texto grande texto grande texto grande '
+        cy.clock()
         cy.get('#firstName').type('Monique')
         cy.get('#lastName').type('Guimarães')
         cy.get('#email').type('monique.pguimaraes@gmail.com')
@@ -21,9 +24,13 @@ describe('Central de Atendimento ao Cliente TAT', function() {
             //ate aqui são apenas ações, com a linha abaixo que é uma verificação, temos o resultado esperado
         cy.get('.success').should('be.visible') //uma mensagem de sucesso com a classe chamada success deve ser visivil
             // aqui ele encontra o elemento success que tem como dever ser visivel, validando o teste
+        cy.tick(THREE_SECONDS_IN_MS)
+        cy.get('.success').should('not.be.visible')
     })
 
     it('exibe mensagem de erro ao submeter o formulário com um email com formatação inválida', function() {
+
+        cy.clock()
 
         cy.get('#firstName').type('Monique')
         cy.get('#lastName').type('Guimarães')
@@ -32,18 +39,23 @@ describe('Central de Atendimento ao Cliente TAT', function() {
         cy.contains('button', 'Enviar').click() //cy.get('button[type="submit"]').click()
 
         cy.get('.error').should('be.visible') // no caso para validar um erro.. o campo email está invalido para esse teste
-
+        cy.tick(THREE_SECONDS_IN_MS)
+        cy.get('.error').should('not.be.visible')
     })
 
-    it('validar que, se um valor não-numérico for digitado, seu valor continuará vazio', function() {
+    Cypress._.times(3, function() { //valida 3x esse mesmo teste
+        it('validar que, se um valor não-numérico for digitado, seu valor continuará vazio', function() {
 
-        cy.get('#phone') //o campo telefone
-            .type('aygduyage') // preencher com nao numerico
-            .should('have.value', '') //ja que nao passei numeros mas letras.. ele deve ficar vazio
+            cy.get('#phone') //o campo telefone
+                .type('aygduyage') // preencher com nao numerico
+                .should('have.value', '') //ja que nao passei numeros mas letras.. ele deve ficar vazio
 
+        })
     })
+
 
     it('exibe mensagem de erro quando o telefone se torna obrigatório mas não é preenchido antes do envio do formulário', function() {
+        cy.clock()
         cy.get('#firstName').type('Monique')
         cy.get('#lastName').type('Guimarães')
         cy.get('#email').type('monique.pguimaraes@gmail.com')
@@ -52,6 +64,8 @@ describe('Central de Atendimento ao Cliente TAT', function() {
         cy.contains('button', 'Enviar').click() //cy.get('button[type="submit"]').click()
 
         cy.get('.error').should('be.visible')
+        cy.tick(THREE_SECONDS_IN_MS)
+        cy.get('.error').should('not.be.visible')
 
     })
 
@@ -139,6 +153,7 @@ describe('Central de Atendimento ao Cliente TAT', function() {
     })
 
     it('Revise mensagem de erro quando o telefone se torna obrigatório mas não é preenchido antes do envio do formulário', function() {
+        cy.clock()
         cy.get('#firstName').type('Monique')
         cy.get('#lastName').type('Guimarães')
         cy.get('#email').type('monique.pguimaraes@gmail.com')
@@ -147,6 +162,8 @@ describe('Central de Atendimento ao Cliente TAT', function() {
         cy.contains('button', 'Enviar').click() //cy.get('button[type="submit"]').click()
 
         cy.get('.error').should('be.visible')
+        cy.tick(THREE_SECONDS_IN_MS)
+        cy.get('.error').should('not.be.visible')
     })
 
     it('seleciona um arquivo da pasta fixtures', function() {
@@ -189,5 +206,53 @@ describe('Central de Atendimento ao Cliente TAT', function() {
         cy.contains('Talking About Testing').should('be.visible') //fazendo a validação que a pagina foi aberta na mesma aba, só que validando atraves do texto    
     })
 
+    //ex aula 11, com .clock e .tick no teste de 'preenche os campos obrigatórios e envia o formulário'
 
+    it('exibe e esconde as mensagens de sucesso e erro usando o .invoke', () => {
+        cy.get('.success')
+            .should('not.be.visible')
+            .invoke('show')
+            .should('be.visible')
+            .and('contain', 'Mensagem enviada com sucesso.')
+            .invoke('hide')
+            .should('not.be.visible')
+        cy.get('.error')
+            .should('not.be.visible')
+            .invoke('show')
+            .should('be.visible')
+            .and('contain', 'Valide os campos obrigatórios!')
+            .invoke('hide')
+            .should('not.be.visible')
+    })
+
+    it('preenche a area de texto usando o comando invoke', function() {
+        const longText = Cypress._.repeat('0123456789', 20) //texto longo que repetira 20x os numeros na string
+
+        cy.get('#open-text-area') //area de texto
+            .invoke('val', longText) //incova um valor dessa area de texto, e seta nesse valoro longtext passado anteriomente
+            .should('have.value', longText)
+    })
+
+    it('faz uma requisição HTTP', function() {
+
+        cy.request('https://cac-tat.s3.eu-central-1.amazonaws.com/index.html') //passo como parametro a url da requisição
+            .should(function(resposta) { //na minha validação, meu argumento é uma função de callback, que vai receber a resposta da requisição
+                //console.log(resposta) //vejo pelo log o que acontece quando a requisição é passada, body, headers, status, status text e outros
+                const { status, statusText, body } = resposta // desestruturo a resposta do console, criando 3 variaveis numa linha só que me traz apenas as infos que quero para o ex. tudo isso a partir da 'resposta'
+                expect(status).to.equal(200) // esperado que status é = 200
+                expect(statusText).to.equal('OK') // esperado que status texto é uma string OK
+                expect(body).to.include('CAC TAT') // esperado que o body inclua a string cac tat
+            })
+
+    })
+
+    it.only('Encontre o gato', function() {
+        cy.get('#cat')
+            .invoke('show')
+            .should('be.visible')
+        cy.get('#title')
+            .invoke('text', 'CAT TAT')
+        cy.get('#subtitle')
+            .invoke('text', 'OLHEM ESSA JUJUBINHA')
+    })
 })
